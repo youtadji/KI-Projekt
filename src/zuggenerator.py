@@ -1,5 +1,6 @@
 from enum import Enum
 import main
+import Board
 
    # Cell that can either be a Stack (containing a list of Player objects) or Empty
 class Cell:
@@ -159,16 +160,19 @@ def print_legal_moves_for_stack(board, position):
         print("Move to", index_to_notation(move.col, move.row))
 
 
-1
+
 
 
 # Example usage:
 #board(row)(col)
 #pos(col)(row)
 
-fen = "6/1bb1b02b01/4rb3/2r05/3r01b02/b03r0r02/2rr1r03/6"
+#fen = "6/1bb1b02b01/4rb3/2r05/3r01b02/b03r0r02/2rr1r03/6"
+fen="6/8/6b01/4bb3/r0r0rr4b0/3b02r01/1rr3r2/6"
 fen2 = main.reformulate(fen)
 board = main.visualize_board(fen2)  # This would be your function to create and setup the board
-print("eyaaaa",board[5][4])
+print("eyaaaa",board[4][0])
+print("chof eddha:",board[4][2])
+board2=Board.create_board(fen)
 # Now print the legal moves for the stack at (0,0)
-print_legal_moves_for_stack(board, Pos(4, 5))
+print_legal_moves_for_stack(board, Pos(0, 4))

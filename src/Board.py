@@ -48,36 +48,30 @@ def set_corners(board):
     corners = [(0, 0), (0, 7), (7, 0), (7, 7)]
     for x, y in corners:
         board[x][y] = '0'
-'''
-def switch_pieces(board):
-    # Switch 'b' and 'r' on the board
-    for row in range(len(board)):
-        for col in range(len(board[row])):
-            if board[row][col] == 'b':
-                board[row][col] = 'r'
-            elif board[row][col] == 'r':
-                board[row][col] = 'b'
-            elif board[row][col] == 'rr':
-                board[row][col] = 'bb'
-            elif board[row][col] == 'bb':
-                board[row][col] = 'rr'
-            elif board[row][col] == 'rb':
-                board[row][col] = 'br'
-            elif board[row][col] == 'br':
-                board[row][col] = 'rb'
-'''
 
 def print_board(board):
+
     # Print the board
     print("Board layout:")
     board.reverse()
     for row in board:
         print(' '.join(row))
 
-# Main execution
+def create_board(fen):
+    board = initialize_board()
+    setup_pieces(board, fen)
+    set_corners(board)  # Set corners after initial setup
+    print_board(board)
+    return board
+
+'''# Main execution
 board = initialize_board()
 fen = "b0b0b02bb/1b01b0bb1b01/2b05/5b02/1r06/8/2r0rrr0rr1r0/r0r01r01r0"
 setup_pieces(board, fen)
 set_corners(board)  # Set corners after initial setup
 #switch_pieces(board)  # Switch 'b' and 'r' after setup
-print_board(board)
+print_board(board)'''
+
+#fen = "b0b0b02bb/1b01b0bb1b01/2b05/5b02/1r06/8/2r0rrr0rr1r0/r0r01r01r0"
+#board = create_board(fen)
+#print_board(board)

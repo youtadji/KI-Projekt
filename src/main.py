@@ -126,9 +126,9 @@ def parseRow(row_str, row_index):
                     row.append(Cell([player]))
                     col += 2  # Skip the '0'
                 else:
-                    # Check if the current character should be appended to the previous stack
+                    # Check if the current character should be appended to the previous stack and that the one before i not 0
                     if (row and row[-1] and isinstance(row[-1], Cell) and hasattr(row[-1], 'stack') and
-                            row[-1].stack and not isinstance(row[-1].stack[-1], int) and len(row[-1].stack) < 2):
+                            row[-1].stack and not isinstance(row[-1].stack[-1], int) and len(row[-1].stack) < 2) and (row_str[col - 1] != '0'):
                         row[-1].stack.append(player)
                     else:
                         # Otherwise, start a new stack
@@ -148,6 +148,8 @@ def visualize_board(fen):
         row = parseRow(row_str, i)
         board.append(row) #iterate over the cells in the row and add the string of the cell to the board
 
+    for row in board:
+        print(" | ".join(str(cell) for cell in row))
 
 
 
@@ -170,7 +172,7 @@ def reformulate(fen):
 
 def main():
     # Example FEN string
-    fen = "2rr2br/2rr2br1b0/b07/b03rrr2r0/b05rbb1/8/8/r0r0r0r0r0r0"
+    fen = "6/8/6b01/4bb3/r0r0rr4b0/3b02r01/1rr3r2/6"
     print("fen : " +fen)
     reformulated = reformulate(fen)
     print("reformulated : " +reformulated)

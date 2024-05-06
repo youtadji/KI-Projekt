@@ -1,6 +1,6 @@
 import time
-from src.main import *
-from src.zuggenerator import *
+import main
+import zuggenerator
 
 # Function to benchmark the calculate_possible_moves function with a specific position
 def benchmark_zuggenerator_with_test_case(zuggenerator_func, board, pos, player):
@@ -21,7 +21,10 @@ for row in range(8):
         # Setup the board for each position
         board = main.visualize_board(main.reformulate("6/1bb1b02b01/8/2r05/3r01b02/5r0r02/2rr1r03/6 b"))  # Example FEN string
         player = "b"  # Example player color
-        pos = Pos(col, row)  # Create Pos object for the position
+        pos = zuggenerator.Pos(col, row)  # Create Pos object for the position
 
-        # Replace Zuggenerator() with the actual way you instantiate your Zuggenerator class
-        benchmark_zuggenerator_with_test_case(calculate_possible_moves, board, pos, player)
+        new_cell = board[pos.row][pos.col]
+
+        # Check if the new cell is empty or has only one piece or has two pieces but the top one is opponents one so it can eat it
+        if not new_cell.is_empty():
+          benchmark_zuggenerator_with_test_case(zuggenerator.calculate_possible_moves, board, pos, player)  # Replace Zuggenerator() with the actual way you instantiate your Zuggenerator class
