@@ -1,5 +1,8 @@
 from enum import Enum
 
+import mem
+import copy
+import board
 
 # Player can have any of two values (Red or Blue)
 from enum import Enum
@@ -52,51 +55,25 @@ class Pos:
         return False
 
     def __str__(self):
-        return f"Pos({self.col}, {self.row})"
-
-
-
-# several possible values representing directions
-class Dir(Enum):
-    NORTH = 'North'
-    NORTHEAST = 'NorthEast'
-    EAST = 'East'
-    WEST = 'West'
-    NORTHWEST = 'NorthWest'
-
-    def __eq__(self, other):
-        if isinstance(other, Dir):
-            return self.value == other.value  # Compares the direction
-        return False
-
-
-# Initialize an 8x8 board with None in the corner cells
-def create_board():
-    # Start with a list comprehension to generate an 8x8 grid
-    board = [[Cell() for _ in range(8)] for _ in range(8)]
-
-    # Set corner cells to None to indicate their absence
-    board[0][0] = None  # Top-left corner
-    board[0][7] = None  # Top-right corner
-    board[7][0] = None  # Bottom-left corner
-    board[7][7] = None  # Bottom-right corner
-
-    return board
+        # Convert col (numeric) to letters (A=1, B=2, etc.)
+        #col_letter = chr(64 + self.col)  # 'A' is ASCII 65
+        return f"{chr(65 + self.col)}{self.row + 1}"
 
 
 # Class representing a move with start and end positions
 class Move:
-    def _init_(self, start, end):
+    def __init__(self, start, end):
         self.start = start
         self.end = end
 
-    def _eq_(self, other):
+    def __eq__(self, other):
         if isinstance(other, Move):
             return self.start == other.start and self.end == other.end
         return False
 
-    def _str_(self):
-        return f"Move from {self.start} to {self.end}"
+    def __str__(self):
+        # Represent the move in the format "B1-B2"
+        return f"{self.start}-{self.end}"
 
 
 def parseRow(row_str, row_index):
@@ -114,7 +91,8 @@ def parseRow(row_str, row_index):
             if char.isdigit():
                 # If a digit is encountered, it represents the number of consecutive empty cells
                 num_empty_cells = int(char)
-                row.extend([Cell()] * num_empty_cells) #use the str
+                row.extend([Cell() for _ in range(num_empty_cells)])  # Create new instances
+                #row.extend([Cell()] * num_empty_cells) #use the str
                 col += 1  # Move to the next character
             else:
                 # Determine the player color
@@ -126,7 +104,7 @@ def parseRow(row_str, row_index):
                     row.append(Cell([player]))
                     col += 2  # Skip the '0'
                 else:
-                    # Check if the current character should be appended to the previous stack and that the one before i not 0
+                    # Check if the current character should be appended to the previous stack
                     if (row and row[-1] and isinstance(row[-1], Cell) and hasattr(row[-1], 'stack') and
                             row[-1].stack and not isinstance(row[-1].stack[-1], int) and len(row[-1].stack) < 2) and (row_str[col - 1] != '0'):
                         row[-1].stack.append(player)
@@ -143,18 +121,14 @@ def parseRow(row_str, row_index):
 
 def visualize_board(fen):
     board = []
+    #order_board = []
     rows = fen.split("/")
     for i, row_str in enumerate(rows):
         row = parseRow(row_str, i)
         board.append(row) #iterate over the cells in the row and add the string of the cell to the board
 
-    for row in board:
-        print(" | ".join(str(cell) for cell in row))
-
-
-
     return board
-
+#r0r0rr4b0
 def reformulate(fen):
     # Split the FEN string into rows
     rows = fen.split("/")
@@ -170,14 +144,71 @@ def reformulate(fen):
 
     return new_fen
 
+# Function to convert a board into an FEN (Forsyth-Edwards Notation) string
+def board_to_fen(board):
+    fen_rows = []  # List to hold FEN strings for each row
+
+    # Loop through each row in the board
+    for row in board:
+        fen_row = ""  # String to build the FEN representation of the row
+        empty_count = 0  # Counter for consecutive empty cells
+
+        # Loop through each cell in the row
+        for cell in row:
+            if not cell.stack:
+                # If the cell is empty, increment the empty count
+                empty_count += 1
+            else:
+                # If there are empty cells, add the count to the FEN row
+                if empty_count > 0:
+                    fen_row += str(empty_count)
+                    empty_count = 0  # Reset the empty count
+
+                # Get the FEN representation for the stack in the cell
+                stack_fen = "".join(
+                    ['r' if player == Player.RED else 'b' for player in cell.stack]
+                )
+
+                # If the stack has only one piece, append '0' to indicate a single item
+                if len(cell.stack) == 1:
+                    stack_fen += "0"
+
+                # Add the stack representation to the FEN row
+                fen_row += stack_fen
+
+        # If there are trailing empty cells, add their count to the FEN row
+        if empty_count > 0:
+            fen_row += str(empty_count)
+
+        # Add the FEN row to the list
+        fen_rows.append(fen_row)
+
+    # Join all rows with '/' to get the full FEN representation
+    return "/".join(fen_rows)
+
+
+# Function to remove the first and last cells from the first and last rows
+def trim_corners(board):
+    #make a deep copy to avoid trimming the original board
+    copied_board = copy.deepcopy(board)
+
+    # Remove the first and last cell from the first row
+    copied_board[0] = copied_board[0][1:-1]
+
+    # Remove the first and last cell from the last row
+    copied_board[-1] = copied_board[-1][1:-1]
+
+    return copied_board  # Return the modified board
+
 def main():
     # Example FEN string
-    fen = "6/8/6b01/4bb3/r0r0rr4b0/3b02r01/1rr3r2/6"
-    print("fen : " +fen)
-    reformulated = reformulate(fen)
-    print("reformulated : " +reformulated)
+    #fen = "2rr2br/2rr2br1b0/b07/b03rrr2r0/b05rbb1/8/8/r0r0r0r0r0r0"
+    #print("fen",fen)
+    #reformulated= reformulate(fen)
+    #print("reformulated",reformulated)
     # Visualize the board
-    visualize_board(reformulated)
+    '''visualize_board(reformulated)
+    board.create_board(fen)'''
 
 
 if __name__ == "__main__":

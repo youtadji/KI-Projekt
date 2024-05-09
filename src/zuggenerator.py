@@ -1,6 +1,12 @@
 from enum import Enum
+
+import mem
+
 import main
-import Board
+import board
+import copy
+import psutil
+import platform
 
    # Cell that can either be a Stack (containing a list of Player objects) or Empty
 class Cell:
@@ -42,17 +48,6 @@ class Pos:
 
 
 # several possible values representing directions
-class Dir(Enum):
-    NORTH = 'North'
-    NORTHEAST = 'NorthEast'
-    EAST = 'East'
-    WEST = 'West'
-    NORTHWEST = 'NorthWest'
-
-    def __eq__(self, other):
-        if isinstance(other, Dir):
-            return self.value == other.value  # Compares the direction
-        return False
 
 def calculate_possible_moves_for_single_piece(board, pos, player):
     forbidden_positions = [(0, 0), (7, 7), (0, 7), (7, 0)]
@@ -101,8 +96,6 @@ def calculate_possible_moves_for_single_piece(board, pos, player):
     return possible_moves
 
 
-
-
 def calculate_possible_moves(board, pos, player):
     forbidden_positions = [(0, 0), (7, 7), (0, 7), (7, 0)]
     possible_moves = []
@@ -137,7 +130,9 @@ def calculate_possible_moves(board, pos, player):
                 possible_moves.append(Pos(new_col, new_row))
 
     return possible_moves
-
+def index_to_notation(col, row):
+    # Converts zero-based index to board notation (A-H for columns, 1-8 for rows bottom to top)
+    return f"{chr(65 + col)}{row + 1}"
 
 
 def print_legal_moves_for_stack(board, position):
@@ -158,21 +153,94 @@ def print_legal_moves_for_stack(board, position):
     print("Legal Moves from position", index_to_notation(position.col, position.row), ":")
     for move in legal_moves:
         print("Move to", index_to_notation(move.col, move.row))
+    return legal_moves
+
+#NEW YARA
+def do_move(start_pos, end_pos, player, board):
+    # Create a deep copy of the board
+    updated_board = copy.deepcopy(board)
+
+    # Retrieve the start and end cells from the copied board
+    start_cell = updated_board[start_pos.row][start_pos.col]
+    end_cell = updated_board[end_pos.row][end_pos.col]
+
+    # Check if the end position is empty
+    if end_cell.is_empty():
+
+        end_cell.stack = end_cell.stack[:] + [player]
+
+    else:
+        # If end position has a stack with a top player other than the given player
+        if end_cell.stack[-1] != player:
+            # Remove the top player from the end stack
+            end_cell.stack.pop()
+            # Add the current player to the end stack
+            end_cell.stack.append(player)
+        # If the end stack has the same player on top
+        elif end_cell.stack[-1] == player and len(end_cell.stack) == 1:
+            # Add the current player to the top of the end stack
+            end_cell.stack.append(player)
+    # Remove the top player from the start cell
+    start_cell.stack.pop()
+
+    return updated_board
 
 
 
+# NEW TRA MY
+def check_game_end(fen):
+    rows = fen.split('/')
+    for i, row in enumerate(rows):
+        for j, cell in enumerate(row):
+            if cell.isdigit():
+                continue  # Skip empty spaces which are represented by digits
+            elif 'b' in cell:  # Assuming 'b' represents the blue player
+                if i == 7:  # Blue piece on the last row indicates game end
+                    return "Game Over: Blue wins :D"
+            elif 'r' in cell:  # Assuming 'r' represents the red player
+                if i == 0:  # Red piece on the first row indicates game end
+                    return "Game Over: Red wins :D"
+    return None  # Game is not over yet
 
+def get_possible_moves(fen, player, board):
+    game_result = check_game_end(fen)
 
-# Example usage:
-#board(row)(col)
-#pos(col)(row)
+    if game_result:
+        print(game_result)
+        board2 = board
+    else:
+        board2 = board
+    # print(board2)
+    # If the game hasn't ended, continue with regular board setup and move calculation
+    fen2 = main.reformulate(fen)
+    board = main.visualize_board(fen2)  # This would be your function to create and setup the board
 
-#fen = "6/1bb1b02b01/4rb3/2r05/3r01b02/b03r0r02/2rr1r03/6"
-fen="6/8/6b01/4bb3/r0r0rr4b0/3b02r01/1rr3r2/6"
-fen2 = main.reformulate(fen)
-board = main.visualize_board(fen2)  # This would be your function to create and setup the board
-print("eyaaaa",board[4][0])
-print("chof eddha:",board[4][2])
-board2=Board.create_board(fen)
-# Now print the legal moves for the stack at (0,0)
-print_legal_moves_for_stack(board, Pos(0, 4))
+    '''board[4][0] = Cell([main.Player.RED])  # Now set a stack at position (0,0)
+    print_legal_moves_for_stack(board, Pos(0, 4))'''
+
+    # NEW YARAA
+    player_positions = []
+    updated_boards = []
+    # NEW YARA
+    # game_ends = []
+    possible_moves = []
+
+    player = player
+    for row_index, row in enumerate(board):
+        for col_index, cell in enumerate(row):
+            if cell and not cell.is_empty() and cell.stack[-1] == player:
+                # Add the position to the list
+                player_positions.append(Pos(col_index, row_index))
+    for start_position in player_positions:
+        end_positions = calculate_possible_moves(board, start_position, player)
+        for end_pos in end_positions:
+            start = index_to_notation(start_position.col, start_position.row)
+            end = index_to_notation(end_pos.col, end_pos.row)
+            # print(start, end)
+            move = main.Move(start, end)
+
+            possible_moves.append(str(move))
+
+    # Return the list of possible moves
+    return possible_moves
+mem=psutil.virtual_memory()
