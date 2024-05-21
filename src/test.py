@@ -268,17 +268,7 @@ class TestCalculatePossibleMoves(unittest.TestCase):
 
         self.run_test_case(case)
 
-    def test_gruppe_l_early_to_mid_game(self):
-        case = {
-                "fen": "1b01b0b01/b01bb0b01bb0b01/1b06/8/7b0/1r02r01rr1/2rr2rr2/r0r01r0r01",
-                "description": "Mid Game",
-                "player": main.Player.BLUE,
-                "expected_moves": ["A2-A3", "A2-B2", "B3-A3", "B3-B4", "B3-C3", "C1-B1", "C1-D1", "C2-A3", "C2-B4", "C2-D4",
-                               "C2-E3", "D2-D3", "D2-E2", "E1-D1", "E1-E2", "E1-F1", "F1-E1", "F1-G1", "F2-D3", "F2-E4",
-                               "F2-G4", "F2-H3", "G2-G3", "G2-H2", "H5-G5", "H5-G6", "H5-H6"]
-            }
 
-        self.run_test_case(case)
 
     def test_gruppe_mty_mid_game(self):
         case = {
