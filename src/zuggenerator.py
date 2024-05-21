@@ -1,12 +1,8 @@
 from enum import Enum
-
-import mem
-
 import main
 import board
 import copy
-import psutil
-import platform
+
 
    # Cell that can either be a Stack (containing a list of Player objects) or Empty
 class Cell:
@@ -48,7 +44,17 @@ class Pos:
 
 
 # several possible values representing directions
+class Dir(Enum):
+    NORTH = 'North'
+    NORTHEAST = 'NorthEast'
+    EAST = 'East'
+    WEST = 'West'
+    NORTHWEST = 'NorthWest'
 
+    def __eq__(self, other):
+        if isinstance(other, Dir):
+            return self.value == other.value  # Compares the direction
+        return False
 def calculate_possible_moves_for_single_piece(board, pos, player):
     forbidden_positions = [(0, 0), (7, 7), (0, 7), (7, 0)]
     possible_moves = []
@@ -59,7 +65,7 @@ def calculate_possible_moves_for_single_piece(board, pos, player):
         capture_directions = [(1, -1), (-1, -1)]
     else:
         movement_directions = [(-1, 0), (1, 0), (0, 1)]
-        capture_directions = [(-1, 1), (-1, 1)]
+        capture_directions = [(1, 1), (-1, 1)]
 
     # Initial positions for capture and movement
     initial_pos_capture = pos
@@ -89,7 +95,7 @@ def calculate_possible_moves_for_single_piece(board, pos, player):
             new_cell = board[new_row][new_col]
 
             # Check if the new cell is empty
-            if new_cell.is_empty() or len(new_cell.stack) == 1:
+            if new_cell.is_empty() or len(new_cell.stack) == 1 and not (player != new_cell.stack[-1]):
                 possible_moves.append(Pos(new_col, new_row))  # Add movement move
 
 
@@ -166,8 +172,7 @@ def do_move(start_pos, end_pos, player, board):
 
     # Check if the end position is empty
     if end_cell.is_empty():
-
-        end_cell.stack = end_cell.stack[:] + [player]
+        end_cell.stack.append(player)
 
     else:
         # If end position has a stack with a top player other than the given player
@@ -243,4 +248,7 @@ def get_possible_moves(fen, player, board):
 
     # Return the list of possible moves
     return possible_moves
-mem=psutil.virtual_memory()
+fen = "bb1b0b0b0b0/b01b0b0b01b01/8/3b04/3r04/2r05/1rr2r0r01r0/1r0r0r0r0r0"
+p = get_possible_moves(fen, main.Player.BLUE, board.create_board(fen))
+print(p)
+

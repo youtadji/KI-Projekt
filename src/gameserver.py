@@ -134,9 +134,9 @@ def play_game():
             random_move = random.choice(possible_moves)  # Randomly select a move from the list of possible moves
             start_pos, end_pos = parse_move(random_move)
             board_stack = zuggenerator.do_move(start_pos, end_pos, current_player, board_stack)
-            print("board after update")
-            for row in board_stack:
-                print(" | ".join(str(cell) for cell in row))
+            # print("board after update")
+            '''for row in board_stack:
+                print(" | ".join(str(cell) for cell in row))'''
 
         trimmed_board = main.trim_corners(board_stack)
         fen = main.board_to_fen(trimmed_board)
