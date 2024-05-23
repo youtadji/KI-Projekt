@@ -41,20 +41,6 @@ class Pos:
     def __str__(self):
         return f"Pos({self.col}, {self.row})"
 
-
-
-# several possible values representing directions
-class Dir(Enum):
-    NORTH = 'North'
-    NORTHEAST = 'NorthEast'
-    EAST = 'East'
-    WEST = 'West'
-    NORTHWEST = 'NorthWest'
-
-    def __eq__(self, other):
-        if isinstance(other, Dir):
-            return self.value == other.value  # Compares the direction
-        return False
 def calculate_possible_moves_for_single_piece(board, pos, player):
     forbidden_positions = [(0, 0), (7, 7), (0, 7), (7, 0)]
     possible_moves = []
@@ -65,7 +51,7 @@ def calculate_possible_moves_for_single_piece(board, pos, player):
         capture_directions = [(1, -1), (-1, -1)]
     else:
         movement_directions = [(-1, 0), (1, 0), (0, 1)]
-        capture_directions = [(1, 1), (-1, 1)]
+        capture_directions = [(-1, 1), (-1, 1)]
 
     # Initial positions for capture and movement
     initial_pos_capture = pos
@@ -95,7 +81,7 @@ def calculate_possible_moves_for_single_piece(board, pos, player):
             new_cell = board[new_row][new_col]
 
             # Check if the new cell is empty
-            if new_cell.is_empty() or len(new_cell.stack) == 1 and not (player != new_cell.stack[-1]):
+            if new_cell.is_empty() or len(new_cell.stack) == 1:
                 possible_moves.append(Pos(new_col, new_row))  # Add movement move
 
 
@@ -162,9 +148,9 @@ def print_legal_moves_for_stack(board, position):
     return legal_moves
 
 #NEW YARA
-def do_move(start_pos, end_pos, player, board):
+def do_move(start_pos, end_pos, player, updated_board):
     # Create a deep copy of the board
-    updated_board = copy.deepcopy(board)
+    #updated_board = copy.deepcopy(board)
 
     # Retrieve the start and end cells from the copied board
     start_cell = updated_board[start_pos.row][start_pos.col]
@@ -186,6 +172,7 @@ def do_move(start_pos, end_pos, player, board):
             # Add the current player to the top of the end stack
             end_cell.stack.append(player)
     # Remove the top player from the start cell
+    print("start cell = ", start_cell.stack)
     start_cell.stack.pop()
 
     return updated_board
@@ -248,7 +235,6 @@ def get_possible_moves(fen, player, board):
 
     # Return the list of possible moves
     return possible_moves
-fen = "bb1b0b0b0b0/b01b0b0b01b01/8/3b04/3r04/2r05/1rr2r0r01r0/1r0r0r0r0r0"
-p = get_possible_moves(fen, main.Player.BLUE, board.create_board(fen))
-print(p)
-
+'''fen = "6/8/6b01/4bb3/r0r0rr4b0/3b02r01/1rr3r2/6"
+p = get_possible_moves(fen, main.Player.RED, board.create_board(fen))
+print(p)'''

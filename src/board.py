@@ -49,16 +49,6 @@ def set_corners(board):
     for x, y in corners:
         board[x][y] = '0'
 
-'''def print_board(board):
-
-    # Print the board
-    print("Board layout:")
-    board.reverse()
-    for row in board:
-        print(' '.join(row))
-
-'''
-
 def print_board(board):
     # Define ANSI escape codes for colors
     RED = "\033[31m"
@@ -86,9 +76,6 @@ def print_board(board):
 
     # Print the column labels again at the bottom in pink (magenta)
     print(MAGENTA + "  " + column_labels + RESET)
-    # Printing the "table flip" emoticon
-    print("(ﾉಠдಠ)ﾉ︵┻━┻")
-
 
 def create_board(fen):
     board = initialize_board()
@@ -104,19 +91,7 @@ setup_pieces(board, fen)
 set_corners(board)  # Set corners after initial setup
 #switch_pieces(board)  # Switch 'b' and 'r' after setup
 print_board(board)'''
-'''
-fen = "b0b0b02bb/1b01b0bb1b01/2b05/5b02/1r06/8/2r0rrr0rr1r0/r0r01r01r0"
-board = create_board(fen)
+
+#fen = "b0b0b02bb/1b01b0bb1b01/2b05/5b02/1r06/8/2r0rrr0rr1r0/r0r01r01r0"
+#board = create_board(fen)
 #print_board(board)'''
-# Example of using ANSI escape codes in Python to color terminal output
-
-# Define some ANSI escape codes for colors
-'''RED = "\033[31m"
-GREEN = "\033[32m"
-YELLOW = "\033[33m"
-RESET = "\033[0m"
-
-# Use them in print statements
-print(f"{RED}This text is red!{RESET}")
-print(f"{GREEN}This text is green!{RESET}")
-print(f"{YELLOW}This text is yellow!{RESET}")'''

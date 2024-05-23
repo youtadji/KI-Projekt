@@ -3,6 +3,8 @@ from enum import Enum
 import mem
 import copy
 import board
+import zuggenerator
+#import game
 
 # Player can have any of two values (Red or Blue)
 from enum import Enum
@@ -200,15 +202,121 @@ def trim_corners(board):
 
     return copied_board  # Return the modified board
 
+
+def undo_move(start_pos, end_pos, player, updated_board, board):
+    # Create a deep copy of the board to work with
+    board_copy = copy.deepcopy(updated_board)
+
+    # Retrieve the start and end cells from the copied board
+    start_cell = board_copy[start_pos.row][start_pos.col]
+    end_cell_not_updated = board[end_pos.row][end_pos.col]
+    end_cell = board_copy[end_pos.row][end_pos.col]
+
+    if (not end_cell_not_updated.is_empty() and end_cell_not_updated.stack[-1] != player):
+        # Move the player back to the start position
+        start_cell.stack.append(player)
+        end_cell.stack.pop()
+        end_cell.stack.append(main.Player.RED if player == main.Player.BLUE else main.Player.BLUE)
+
+    else:
+        start_cell.stack.append(player)
+        # Remove the player from the end position
+        if end_cell.stack[-1] == player:
+            end_cell.stack.pop()
+
+    # If the end cell stack had an opponent piece originally, restore it
+    # if len(end_cell.stack) == 0:
+    # This indicates the end cell was initially empty and got captured
+    # end_cell.stack.append(main.Player.RED if player == main.Player.BLUE else main.Player.BLUE)
+
+    return board_copy
+
+
+"""def evaluate_board(board, player):
+    score = 0
+    board_size = len(board)  # Assuming a square board, e.g., 8x8
+
+    for i, row in enumerate(board):
+        for j, cell in enumerate(row):
+            if not cell.is_empty():
+                top_piece = cell.stack[-1]
+                if top_piece.player == main.Player.RED:
+                    # Red player piece, higher score the closer it is to row 0
+                    if player == main.Player.RED:
+                        score += (board_size - 1 - i)
+                    else:
+                        score -= (board_size - 1 - i)
+                elif top_piece.player == main.Player.BLUE:
+                    # Blue player piece, higher score the closer it is to row 7
+                    if player == main.Player.BLUE:
+                        score += i
+                    else:
+                        score -= i
+
+    return score"""
+"""def evaluate_board(board, player):
+    score = 0
+    board_size = len(board)  # Assuming a square board, e.g., 8x8
+
+    for i, row in enumerate(board):
+        for j, cell in enumerate(row):
+            if not cell.is_empty():
+                top_piece = cell.stack[-1]
+                if top_piece.player == main.Player.RED:
+                    # Red player piece, higher score the closer it is to row 0
+                    if player == main.Player.RED:
+                        score += (board_size - 1 - i)
+                    else:
+                        score -= (board_size - 1 - i)
+                elif top_piece.player == main.Player.BLUE:
+                    # Blue player piece, higher score the closer it is to row 7
+                    if player == main.Player.BLUE:
+                        score += i
+                    else:
+                        score -= i
+
+    return score"""
+
+"""
+def print_move_ratings(board, depth, player):
+    Prints the rating for each possible move for the current player using Alpha-Beta-Pruning.
+
+    Parameters:
+    - board: The current state of the board.
+    - depth: The depth to which the Alpha-Beta-Pruning algorithm should evaluate.
+    - player: The current player (main.Player.RED or main.Player.BLUE).
+
+    possible_moves = zuggenerator.get_possible_moves(board_to_fen(board), player, board)
+
+    print(f"Possible moves and their ratings for {player}:")
+    for move in possible_moves:
+        new_board = apply_move(board, move)
+        if player == main.Player.RED:
+            move_rating = alpha_beta(new_board, depth - 1, float('-inf'), float('inf'), main.Player.BLUE)
+        else:
+            move_rating = alpha_beta(new_board, depth - 1, float('-inf'), float('inf'), main.Player.RED)
+
+        print(f"Move: {move}, Rating: {move_rating}")"""
+
+
+# Example usage
+# board = <current_board_state>
+# depth = 3  # For example, you can set the depth you want
+# player = main.Player.RED  # or main.Player.BLUE depending on whose move it is
+# print_move_ratings(board, depth, player)
+
+
 def main():
     # Example FEN string
-    #fen = "2rr2br/2rr2br1b0/b07/b03rrr2r0/b05rbb1/8/8/r0r0r0r0r0r0"
+    fen = "2rr2br/2rr2br1b0/b07/b03rrr2r0/b05rbb1/8/8/r0r0r0r0r0r0"
     #print("fen",fen)
-    #reformulated= reformulate(fen)
+    reformulated= reformulate(fen)
     #print("reformulated",reformulated)
     # Visualize the board
-    '''visualize_board(reformulated)
-    board.create_board(fen)'''
+    #visualize_board(reformulated)
+    board.create_board(fen)
+    #print_move_ratings(board, 3, Player.RED)
+
 
 
 if __name__ == "__main__":
