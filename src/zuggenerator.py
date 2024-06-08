@@ -249,7 +249,7 @@ def get_possible_moves(fen, player, board):
 
     # Return the list of possible moves
     return possible_moves
-fen = "1bb4/1b0b05/b01b0bb4/1b01b01b02/3r01rr2/b0r0r02rr2/4r01rr1/4r0r0"
+"""fen = "1bb4/1b0b05/b01b0bb4/1b01b01b02/3r01rr2/b0r0r02rr2/4r01rr1/4r0r0"
 p = get_possible_moves(fen, main.Player.BLUE, board.create_board(fen))
-print(p)
+print(p)"""
 
