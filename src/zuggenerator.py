@@ -186,7 +186,8 @@ def do_move(start_pos, end_pos, player, board):
             # Add the current player to the top of the end stack
             end_cell.stack.append(player)
     # Remove the top player from the start cell
-    start_cell.stack.pop()
+    if start_cell.stack:
+        start_cell.stack.pop()
 
     return updated_board
 

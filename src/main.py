@@ -199,7 +199,34 @@ def trim_corners(board):
     copied_board[-1] = copied_board[-1][1:-1]
 
     return copied_board  # Return the modified board
+def undo_move(start_pos, end_pos, player, updated_board, board):
+    # Create a deep copy of the board to work with
+    board_copy = copy.deepcopy(updated_board)
 
+    # Retrieve the start and end cells from the copied board
+    start_cell = board_copy[start_pos.row][start_pos.col]
+    end_cell_not_updated = board[end_pos.row][end_pos.col]
+    end_cell = board_copy[end_pos.row][end_pos.col]
+
+    if (not end_cell_not_updated.is_empty() and end_cell_not_updated.stack[-1] != player):
+        # Move the player back to the start position
+        start_cell.stack.append(player)
+        end_cell.stack.pop()
+        end_cell.stack.append(Player.RED if player == Player.BLUE else Player.BLUE)
+
+    else:
+        start_cell.stack.append(player)
+        # Remove the player from the end position
+        if end_cell.stack[-1] == player:
+            end_cell.stack.pop()
+
+
+    # If the end cell stack had an opponent piece originally, restore it
+    # if len(end_cell.stack) == 0:
+    # This indicates the end cell was initially empty and got captured
+    # end_cell.stack.append(main.Player.RED if player == main.Player.BLUE else main.Player.BLUE)
+
+    return board_copy
 def main():
     # Example FEN string
     #fen = "2rr2br/2rr2br1b0/b07/b03rrr2r0/b05rbb1/8/8/r0r0r0r0r0r0"
