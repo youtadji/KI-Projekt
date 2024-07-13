@@ -1,19 +1,20 @@
 import time
-import main  # Assuming main.py contains the alpha_beta function
-import Bitboards  # Assuming Bitboards.py contains parse_fen, reformulate, and other necessary functions
+import Bitboards
 
 
-def benchmark_alpha_beta(bitboards, player):
+def benchmark_evolution(bitboards, player):
     total_time = 0
-    time_limit = 1
+    total_moves = 0
+    pop_size = 5
+    num_generations = 3
+    mutation_rate = 0.1
 
-    alpha = float('-inf')
-    beta = float('inf')
-    depth = 1
     start_time = time.time()
     for _ in range(1000):
         start_time = time.time()
-        Bitboards.alpha_beta(bitboards, alpha, beta, depth, 'r', start_time, time_limit, move=None)
+        move_time = min(total_time - (time.time() - start_time), 1.0)
+        total_moves = 0
+        Bitboards.evolutionary_algorithm_with_alpha_beta(bitboards, player,  pop_size, num_generations, mutation_rate, move_time, total_moves)
         end_time = time.time()
         # Calculate elapsed time
         total_time += (end_time - start_time)
@@ -37,10 +38,6 @@ for case in benchmark_cases:
     description = case["description"]
     bitboards = Bitboards.parse_fen(Bitboards.reformulate(fen))
     visualized_board = bitboards.print_combined_board()
-    avg_time = benchmark_alpha_beta(bitboards, player)
-    print(f"Benchmarking Alpha-Beta for {description}: {avg_time:.6f} seconds per call")
+    avg_time = benchmark_evolution(bitboards, player)
+    print(f"Benchmarking evolution for {description}: {avg_time:.6f} seconds per call")
     print(f"Benchmark for {description}: {(avg_time) * 1000:.4f} seconds for 1000 Wiederholungen")
-
-    '''for depth, avg_time, best_move in results:
-        print(f"At depth {depth}: Average Time = {avg_time:.6f}s, Best Move = {best_move}")
-    print()'''
