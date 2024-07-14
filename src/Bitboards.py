@@ -6,6 +6,7 @@ import multiprocessing
 
 transposition_table = {}
 
+
 class Pos:
     def __init__(self, row, col):
         self.row = row
@@ -161,6 +162,7 @@ def reformulate(fen):
     new_fen = "/".join(rows)
     return new_fen
 
+
 def reverse_fen(fen):
     # Split the FEN string into parts
     parts = fen.split(' ')
@@ -180,6 +182,7 @@ def reverse_fen(fen):
         reversed_fen += f' {color}'
 
     return reversed_fen
+
 
 def parse_fen(fen):
     bitboards = Bitboards()
@@ -256,7 +259,7 @@ def calculate_possible_moves_for_stack(bitboards, row, col, player):
     if player == 'b':
         move_directions = [(2, 1), (2, -1), (1, -2), (1, 2)]
     else:
-        move_directions = [(-2, -1), (-1, -2), (-1, 2),  (-2, 1)]
+        move_directions = [(-2, -1), (-1, -2), (-1, 2), (-2, 1)]
 
     # Iterate over possible move directions
     for dr, dc in move_directions:
@@ -276,7 +279,7 @@ def calculate_possible_moves_for_stack(bitboards, row, col, player):
                     ((bitboards.rb & (1 << bit_position)) and player == 'r') or \
                     ((bitboards.bb & (1 << bit_position)) and player == 'r') or \
                     ((bitboards.rr & (1 << bit_position)) and player == 'b') or \
-                    (not (bitboards.all_pieces & (1 << bit_position))) :
+                    (not (bitboards.all_pieces & (1 << bit_position))):
                 possible_moves.append((r_new, c_new))
 
     return possible_moves
@@ -287,11 +290,11 @@ def calculate_possible_moves(bitboard, row, col, player):
     forbidden_positions = [(0, 0), (7, 7), (0, 7), (7, 0)]
     possible_moves = []
     piece = bitboard.get_piece(row, col)
-    #print(f"Calculating moves for piece at ({row}, {col}): {piece}")
+    # print(f"Calculating moves for piece at ({row}, {col}): {piece}")
     if piece in ['rr', 'br', 'bb', 'rb']:
-        #print("Piece is a stack piece.")
+        # print("Piece is a stack piece.")
         return calculate_possible_moves_for_stack(bitboard, row, col, player)
-        #print("Stack piece moves:", moves)
+        # print("Stack piece moves:", moves)
 
     if piece == 'b':
         move_directions = [(0, 1), (0, -1), (1, 0)]
@@ -312,7 +315,7 @@ def calculate_possible_moves(bitboard, row, col, player):
         # Check if the move is within bounds and the square is empty
         if 0 <= r < 8 and 0 <= c < 8 and (r, c) not in forbidden_positions:
             if not (bitboard.all_pieces & (1 << bit_position)):
-                #bitboards.print_all_boards(bitboards)
+                # bitboards.print_all_boards(bitboards)
                 possible_moves.append((r, c))  # if there is no piece then move
             elif piece == 'r' and (bitboard.r & (1 << bit_position)):  # occupied by a single red
                 possible_moves.append((r, c))
@@ -337,8 +340,8 @@ def calculate_possible_moves(bitboard, row, col, player):
                     (bitboard.br & (1 << bit_position)) != 0 or
                     (bitboard.rr & (1 << bit_position)) != 0):
                 possible_moves.append((r, c))
-            #possible_moves.append((r, c))
-    #print(f"Possible moves calculated: {possible_moves}")
+            # possible_moves.append((r, c))
+    # print(f"Possible moves calculated: {possible_moves}")
     return possible_moves
 
 
@@ -357,6 +360,7 @@ def calculate_all_possible_moves(bitboards, player):
 
 def print_return_all_possible_moves(all_possible_moves):
     all_moves = []
+
     def to_chess_notation(row, col):
         chess_col = chr(ord('A') + col)
         chess_row = str(row + 1)
@@ -370,13 +374,13 @@ def print_return_all_possible_moves(all_possible_moves):
             end_pos_chess = to_chess_notation(end_row, end_col)
             move = f"{start_pos_chess}-{end_pos_chess}"
             all_moves.append(move)
-            #print(f"{start_pos_chess}-{end_pos_chess}")
+            # print(f"{start_pos_chess}-{end_pos_chess}")
     return all_moves
 
 
 def do_move(start_pos, end_pos, player, bitboards):
     # Create a deep copy of the bitboards
-    updated_bitboards = copy.deepcopy(bitboards)  #max recursion reach
+    updated_bitboards = copy.deepcopy(bitboards)  # max recursion reach
 
     # Get the piece type at the start position
     start_piece_type = updated_bitboards.get_piece(start_pos.row, start_pos.col)
@@ -385,7 +389,7 @@ def do_move(start_pos, end_pos, player, bitboards):
     else:
         # Remove the piece from the start position
         updated_bitboards.remove_piece(start_pos.row, start_pos.col)
-        #end_piece_type = updated_bitboards.get_piece(end_pos.row, end_pos.col)
+        # end_piece_type = updated_bitboards.get_piece(end_pos.row, end_pos.col)
 
         if start_piece_type == 'rr' and player == 'r':
             updated_bitboards.set_piece('r', start_pos.row, start_pos.col)
@@ -407,11 +411,11 @@ def do_move(start_pos, end_pos, player, bitboards):
         elif end_piece_type == 'r' and player == 'r':
             updated_bitboards.remove_piece(end_pos.row, end_pos.col)
             updated_bitboards.set_piece('rr', end_pos.row, end_pos.col)
-            #in all cases if thestart one is rr, or br or r we always have the end pos becoming rr
+            # in all cases if thestart one is rr, or br or r we always have the end pos becoming rr
         elif end_piece_type == 'b' and player == 'r':
             updated_bitboards.remove_piece(end_pos.row, end_pos.col)
             updated_bitboards.set_piece('r', end_pos.row, end_pos.col)
-            #i all cases ae are eating the blue and will get just red ine nd pos
+            # i all cases ae are eating the blue and will get just red ine nd pos
         elif end_piece_type == 'b' and player == 'b':
             updated_bitboards.remove_piece(end_pos.row, end_pos.col)
             updated_bitboards.set_piece('bb', end_pos.row, end_pos.col)
@@ -511,7 +515,6 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
         else:
             return calculate_score(bitboards, 'r', move), None
 
-
     game_end_status = check_game_end(bitboards)
     if game_end_status:
         if game_end_status == "Game Over: Blue wins :D":
@@ -528,7 +531,7 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
                 return float('-inf'), None
 
     if depth == 0:
-        #return calculate_score(bitboards, player), None
+        # return calculate_score(bitboards, player), None
         if player == 'r':
 
             return calculate_score(bitboards, 'b', move), None
@@ -538,7 +541,7 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
     best_move = None
     all_possible_moves = calculate_all_possible_moves(bitboards, player)
     if player == 'r':
-        max_eval = float('-inf')  #Do we need max_eval and alpha, or can we use the same variable?
+        max_eval = float('-inf')  # Do we need max_eval and alpha, or can we use the same variable?
         for start_pos, moves in all_possible_moves.items():
             for end_pos in moves:
                 updated_bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
@@ -550,7 +553,7 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
                 alpha = max(alpha, eval)
                 if beta <= alpha:
                     break
-        return max_eval, best_move  ###it evaluates the score from the blue's pov, and as it didnt move, it is getting the same score for both red movements, and is just getting the first end position bec eval !> maxeval --> i changed the calc score fkt to take -p
+        return max_eval, best_move  # it evaluates the score from the blue's pov, and as it didnt move, it is getting the same score for both red movements, and is just getting the first end position bec eval !> maxeval --> i changed the calc score fkt to take -p
     else:
         min_eval = float('inf')
         for start_pos, moves in all_possible_moves.items():
@@ -564,6 +567,7 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
                 if beta <= alpha:
                     break
     return min_eval, best_move
+
 
 def game_stage(bitboards):
     # Count pieces on the board
@@ -579,13 +583,8 @@ def game_stage(bitboards):
         return 'mid'
     else:
         return 'late'
-'''def dynamic_time_allocation(stage, base_time):
-    if stage == 'early':
-        return base_time * 0.5
-    elif stage == 'mid':
-        return base_time * 1.5
-    else:
-        return base_time * 0.75'''
+
+
 def dynamic_time_allocation(stage, base_time):
     if stage == 'early':
         return base_time * 0.5
@@ -593,6 +592,7 @@ def dynamic_time_allocation(stage, base_time):
         return base_time * 1.5
     else:
         return base_time * 0.75
+
 
 def iterative_deepening(bitboards, player, total_time):
     start_time = time.time()
@@ -612,7 +612,8 @@ def iterative_deepening(bitboards, player, total_time):
         if time.time() - start_time < total_time and move:
             start_pos, end_pos = move
             print("Depth = ", depth)
-            print(f"move: {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}", "score: ", score)
+            print(f"move: {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}", "score: ",
+                  score)
 
             if (player == 'r' and score > best_score) or (player == 'b' and score < best_score):
                 best_score = score
@@ -621,38 +622,6 @@ def iterative_deepening(bitboards, player, total_time):
         depth += 1
 
     return best_score, best_move
-
-'''def iterative_deepening(bitboards, player, total_time, total_moves):
-    start_time = time.time()
-    depth = 1
-    best_move = None
-    best_score = float('-inf')
-    #best_score = 0
-
-    stage = game_stage(total_moves)
-    print("stage: ", stage)
-    time_per_move = dynamic_time_allocation(stage, total_time)
-
-    while time.time() - start_time < time_per_move:
-        time_left = time_per_move - (time.time() - start_time)
-        #print("time left: ", time_left, "time per move: ", time_per_move)
-        if time_left <= 0:
-            break  # if it breaks before calling alphabeta - -inf
-        score, move = alpha_beta(bitboards, float('-inf'), float('inf'), depth, player, start_time, time_left)
-        if time.time() - start_time < total_time and move:
-            start_pos, end_pos = move
-            print("Depth = ", depth)
-            print(f"move: {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}", "score: ",
-                  score)
-
-            #if player == 'r':
-            if score > best_score:
-                best_score = score
-                best_move = move
-
-        depth += 1
-
-    return best_score, best_move'''
 
 
 def simulate_game(fen_player, total_time=120):
@@ -674,7 +643,8 @@ def simulate_game(fen_player, total_time=120):
 
         start_pos, end_pos = best_move
         bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
-        print(f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
+        print(
+            f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
         bitboards.print_combined_board()
 
         player = 'b' if player == 'r' else 'r'
@@ -685,58 +655,8 @@ def simulate_game(fen_player, total_time=120):
         print(game_end_status)
     else:
         print("Time limit reached")
-'''def simulate_game(fen_player, total_time=120):
-    player = fen_player[-1]
-    fen = fen_player[:-2]
-    bitboards = parse_fen(reformulate(fen))
-    total_moves = 0
-    start_time = time.time()
-
-    while time.time() - start_time < total_time:
-        if check_game_end(bitboards):
-            break
-
-        move_time = min(total_time - (time.time() - start_time), 1.0)  # Allocate 1 second for each move
-        best_move = iterative_deepening(bitboards, player, move_time, total_moves)
-
-        if not best_move:
-
-            print("No valid move found", player, "Lost")
-            break
-
-        start_pos, end_pos = best_move
-        bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
-        print(
-            f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
-        bitboards.print_combined_board()
 
 
-
-        player = 'b' if player == 'r' else 'r'
-        total_moves += 1
-
-    print("Game Over")
-    game_end_status = check_game_end(bitboards)
-    if game_end_status:
-        print(game_end_status)
-    else:
-        print("Time limit reached")'''
-
-'''def fitness_function_alpha_beta(bitboards, player, move, move_time, total_moves):
-    start_pos, end_pos = move
-    simulated_bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
-    board_hash = hash(simulated_bitboards)
-
-    if board_hash in transposition_table:
-        return transposition_table[board_hash]
-
-    opponent = 'b' if player == 'r' else 'r'
-    score, _ = iterative_deepening(simulated_bitboards, opponent,  move_time, total_moves)
-    #score, _ = alpha_beta(simulated_bitboards, float('-inf'), float('inf'), alpha_beta_depth, opponent, time.time(), 0.5)
-
-    transposition_table[board_hash] = score
-    return score
-'''
 def fitness_function_alpha_beta(bitboards, player, move, move_time):
     start_pos, end_pos = move
     simulated_bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
@@ -751,9 +671,11 @@ def fitness_function_alpha_beta(bitboards, player, move, move_time):
     transposition_table[board_hash] = score
     return score
 
+
 def evaluate_population(bitboards, player, population, move_time, total_moves):
     with ProcessPoolExecutor(max_workers=multiprocessing.cpu_count()) as executor:
-        futures = [executor.submit(fitness_function_alpha_beta, bitboards, player, move, move_time, total_moves) for move in population]
+        futures = [executor.submit(fitness_function_alpha_beta, bitboards, player, move, move_time, total_moves) for
+                   move in population]
         fitnesses = [future.result() for future in futures]
     return fitnesses
 
@@ -764,13 +686,15 @@ def generate_initial_population(bitboards, player, pop_size):
     all_possible_moves = calculate_all_possible_moves(bitboards, player)
     move_list = [(start_pos, end_pos) for start_pos in all_possible_moves for end_pos in all_possible_moves[start_pos]]
     for _ in range(pop_size):
-        population.append(random.choice(move_list)) #we choose random 3 moves
+        population.append(random.choice(move_list))  # we choose random 3 moves
     return population
+
 
 # Selektion der besten Individuen
 def select_parents(population, fitnesses, num_parents):
     parents = sorted(zip(population, fitnesses), key=lambda x: x[1], reverse=True)
     return [parent[0] for parent in parents[:num_parents]]
+
 
 def crossover(parents, num_offspring):
     offspring = []
@@ -781,6 +705,7 @@ def crossover(parents, num_offspring):
         offspring.append((start_pos, end_pos))
     return offspring
 
+
 def mutate(bitboards, offspring, mutation_rate, player):
     all_possible_moves = calculate_all_possible_moves(bitboards, player)
     move_list = [(start_pos, end_pos) for start_pos in all_possible_moves for end_pos in all_possible_moves[start_pos]]
@@ -788,6 +713,7 @@ def mutate(bitboards, offspring, mutation_rate, player):
         if random.random() < mutation_rate:
             offspring[i] = random.choice(move_list)
     return offspring
+
 
 def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate, move_time):
     population = generate_initial_population(bitboards, player, pop_size)
@@ -805,24 +731,7 @@ def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_gene
     best_fitness = max(fitnesses) if player == 'r' else min(fitnesses)
     best_move = population[fitnesses.index(best_fitness)]
     return best_move, best_fitness
-# Evolutionären Prozess durchführen
-'''def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate,
-                                           move_time, total_moves):
-    population = generate_initial_population(bitboards, player, pop_size)
 
-    for generation in range(num_generations):
-        fitnesses = [fitness_function_alpha_beta(bitboards, player, move, move_time, total_moves) for move in population]
-        parents = select_parents(population, fitnesses, pop_size // 2)
-        offspring = crossover(parents, pop_size - len(parents))
-        population = parents + mutate(bitboards, offspring, mutation_rate, player)
-
-        best_fitness = max(fitnesses)
-        best_move = population[fitnesses.index(best_fitness)]
-        print(f'Generation {generation + 1}: Best Fitness = {best_fitness}, Best Move = {best_move}')
-
-    best_fitness = max(fitnesses)
-    best_move = population[fitnesses.index(best_fitness)]
-    return best_move, best_fitness'''
 
 def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5, num_generations=3, mutation_rate=0.1):
     bitboards = parse_fen(reformulate(fen))
@@ -834,7 +743,8 @@ def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5,
             break
 
         move_time = min(total_time - (time.time() - start_time), 1.0)
-        best_move, _ = evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate, move_time)
+        best_move, _ = evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations,
+                                                              mutation_rate, move_time)
 
         if not best_move:
             print("No valid move found", player, "Lost")
@@ -843,7 +753,8 @@ def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5,
         start_pos, end_pos = best_move
 
         bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
-        print(f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
+        print(
+            f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
         bitboards.print_combined_board()
 
         player = 'b' if player == 'r' else 'r'
@@ -854,41 +765,8 @@ def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5,
         print(game_end_status)
     else:
         print("Time limit reached")
-# Simulationsfunktion
-'''def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5, num_generations=3, mutation_rate=0.1):
-    bitboards = parse_fen(reformulate(fen))
-    player = 'b'
-    total_moves = 0
-    start_time = time.time()
-
-    while time.time() - start_time < total_time:
-        if check_game_end(bitboards):
-            break
-
-        move_time = min(total_time - (time.time() - start_time), 1.0)
-        best_move, _ = evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate, move_time, total_moves)
-
-        if not best_move:
-            print("No valid move found", player, "Lost")
-            break
-
-        start_pos, end_pos = best_move
 
 
-        bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
-        print(f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
-        bitboards.print_combined_board()
-
-        player = 'b' if player == 'r' else 'r'
-        total_moves += 1
-
-    print("Game Over")
-    game_end_status = check_game_end(bitboards)
-    if game_end_status:
-        print(game_end_status)
-    else:
-        print("Time limit reached")
-'''
 # Beispiel der Nutzung der Simulationsfunktion
 fen = "b0b0b0b0b0b0/1b0b0b0b0b0b01/8/8/8/8/1r0r0r0r0r0r01/r0r0r0r0r0r0"
 simulate_game_with_evolution_and_alpha_beta(fen)

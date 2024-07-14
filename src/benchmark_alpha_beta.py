@@ -1,5 +1,4 @@
 import time
-import main  # Assuming main.py contains the alpha_beta function
 import Bitboards  # Assuming Bitboards.py contains parse_fen, reformulate, and other necessary functions
 
 

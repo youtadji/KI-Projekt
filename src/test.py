@@ -887,8 +887,3 @@ class TestCalculatePossibleMoves(unittest.TestCase):
         # Check for discrepancies and validate
         self.check_missing_and_extra_moves(fen, player, expected_moves, actual_moves)
 
-
-
-
-"""if __name__ == "__main__":
-    main()"""
