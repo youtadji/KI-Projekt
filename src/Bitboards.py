@@ -565,16 +565,27 @@ def alpha_beta(bitboards, alpha, beta, depth, player, start_time, time_limit, mo
                     break
     return min_eval, best_move
 
+def game_stage(bitboards):
+    # Count pieces on the board
+    num_red_pieces = bin(bitboards.r).count('1') + bin(bitboards.rr).count('1')
+    num_blue_pieces = bin(bitboards.b).count('1') + bin(bitboards.bb).count('1')
 
-def game_stage(total_moves):
-    if total_moves < 20:
+    total_pieces = num_red_pieces + num_blue_pieces
+
+    # Thresholds for determining the stage based on the number of pieces
+    if total_pieces > 24:
         return 'early'
-    elif total_moves < 40:
+    elif 12 < total_pieces <= 24:
         return 'mid'
     else:
         return 'late'
-
-
+'''def dynamic_time_allocation(stage, base_time):
+    if stage == 'early':
+        return base_time * 0.5
+    elif stage == 'mid':
+        return base_time * 1.5
+    else:
+        return base_time * 0.75'''
 def dynamic_time_allocation(stage, base_time):
     if stage == 'early':
         return base_time * 0.5
@@ -583,8 +594,35 @@ def dynamic_time_allocation(stage, base_time):
     else:
         return base_time * 0.75
 
+def iterative_deepening(bitboards, player, total_time):
+    start_time = time.time()
+    depth = 1
+    best_move = None
+    best_score = float('-inf') if player == 'r' else float('inf')
 
-def iterative_deepening(bitboards, player, total_time, total_moves):
+    stage = game_stage(bitboards)
+    print("stage: ", stage)
+    time_per_move = dynamic_time_allocation(stage, total_time)
+
+    while time.time() - start_time < time_per_move:
+        time_left = time_per_move - (time.time() - start_time)
+        if time_left <= 0:
+            break
+        score, move = alpha_beta(bitboards, float('-inf'), float('inf'), depth, player, start_time, time_left)
+        if time.time() - start_time < total_time and move:
+            start_pos, end_pos = move
+            print("Depth = ", depth)
+            print(f"move: {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}", "score: ", score)
+
+            if (player == 'r' and score > best_score) or (player == 'b' and score < best_score):
+                best_score = score
+                best_move = move
+
+        depth += 1
+
+    return best_score, best_move
+
+'''def iterative_deepening(bitboards, player, total_time, total_moves):
     start_time = time.time()
     depth = 1
     best_move = None
@@ -606,23 +644,48 @@ def iterative_deepening(bitboards, player, total_time, total_moves):
             print("Depth = ", depth)
             print(f"move: {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}", "score: ",
                   score)
-            """if (score > best_score and player == 'r') or (score < best_score and player == 'b'):
-                best_score = score
-                best_move = move"""
+
             #if player == 'r':
             if score > best_score:
                 best_score = score
                 best_move = move
-            """else:
-                if score < best_score:
-                    best_score = score
-                    best_move = move"""
+
         depth += 1
 
-    return best_score, best_move
+    return best_score, best_move'''
 
 
 def simulate_game(fen_player, total_time=120):
+    player = fen_player[-1]
+    fen = fen_player[:-2]
+    bitboards = parse_fen(reformulate(fen))
+    start_time = time.time()
+
+    while time.time() - start_time < total_time:
+        if check_game_end(bitboards):
+            break
+
+        move_time = min(total_time - (time.time() - start_time), 1.0)  # Allocate 1 second for each move
+        best_score, best_move = iterative_deepening(bitboards, player, move_time)
+
+        if not best_move:
+            print("No valid move found", player, "Lost")
+            break
+
+        start_pos, end_pos = best_move
+        bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
+        print(f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
+        bitboards.print_combined_board()
+
+        player = 'b' if player == 'r' else 'r'
+
+    print("Game Over")
+    game_end_status = check_game_end(bitboards)
+    if game_end_status:
+        print(game_end_status)
+    else:
+        print("Time limit reached")
+'''def simulate_game(fen_player, total_time=120):
     player = fen_player[-1]
     fen = fen_player[:-2]
     bitboards = parse_fen(reformulate(fen))
@@ -657,11 +720,9 @@ def simulate_game(fen_player, total_time=120):
     if game_end_status:
         print(game_end_status)
     else:
-        print("Time limit reached")
+        print("Time limit reached")'''
 
-
-
-def fitness_function_alpha_beta(bitboards, player, move, move_time, total_moves):
+'''def fitness_function_alpha_beta(bitboards, player, move, move_time, total_moves):
     start_pos, end_pos = move
     simulated_bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
     board_hash = hash(simulated_bitboards)
@@ -672,6 +733,20 @@ def fitness_function_alpha_beta(bitboards, player, move, move_time, total_moves)
     opponent = 'b' if player == 'r' else 'r'
     score, _ = iterative_deepening(simulated_bitboards, opponent,  move_time, total_moves)
     #score, _ = alpha_beta(simulated_bitboards, float('-inf'), float('inf'), alpha_beta_depth, opponent, time.time(), 0.5)
+
+    transposition_table[board_hash] = score
+    return score
+'''
+def fitness_function_alpha_beta(bitboards, player, move, move_time):
+    start_pos, end_pos = move
+    simulated_bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
+    board_hash = hash(simulated_bitboards)
+
+    if board_hash in transposition_table:
+        return transposition_table[board_hash]
+
+    opponent = 'b' if player == 'r' else 'r'
+    score, _ = iterative_deepening(simulated_bitboards, opponent, move_time)
 
     transposition_table[board_hash] = score
     return score
@@ -691,8 +766,6 @@ def generate_initial_population(bitboards, player, pop_size):
     for _ in range(pop_size):
         population.append(random.choice(move_list)) #we choose random 3 moves
     return population
-
-
 
 # Selektion der besten Individuen
 def select_parents(population, fitnesses, num_parents):
@@ -716,10 +789,24 @@ def mutate(bitboards, offspring, mutation_rate, player):
             offspring[i] = random.choice(move_list)
     return offspring
 
+def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate, move_time):
+    population = generate_initial_population(bitboards, player, pop_size)
 
+    for generation in range(num_generations):
+        fitnesses = [fitness_function_alpha_beta(bitboards, player, move, move_time) for move in population]
+        parents = select_parents(population, fitnesses, pop_size // 2)
+        offspring = crossover(parents, pop_size - len(parents))
+        population = parents + mutate(bitboards, offspring, mutation_rate, player)
 
+        best_fitness = max(fitnesses) if player == 'r' else min(fitnesses)
+        best_move = population[fitnesses.index(best_fitness)]
+        print(f'Generation {generation + 1}: Best Fitness = {best_fitness}, Best Move = {best_move}')
+
+    best_fitness = max(fitnesses) if player == 'r' else min(fitnesses)
+    best_move = population[fitnesses.index(best_fitness)]
+    return best_move, best_fitness
 # Evolutionären Prozess durchführen
-def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate,
+'''def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate,
                                            move_time, total_moves):
     population = generate_initial_population(bitboards, player, pop_size)
 
@@ -735,11 +822,40 @@ def evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_gene
 
     best_fitness = max(fitnesses)
     best_move = population[fitnesses.index(best_fitness)]
-    return best_move, best_fitness
+    return best_move, best_fitness'''
 
-
-# Simulationsfunktion
 def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5, num_generations=3, mutation_rate=0.1):
+    bitboards = parse_fen(reformulate(fen))
+    player = 'b'
+    start_time = time.time()
+
+    while time.time() - start_time < total_time:
+        if check_game_end(bitboards):
+            break
+
+        move_time = min(total_time - (time.time() - start_time), 1.0)
+        best_move, _ = evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate, move_time)
+
+        if not best_move:
+            print("No valid move found", player, "Lost")
+            break
+
+        start_pos, end_pos = best_move
+
+        bitboards = do_move(Pos(*start_pos), Pos(*end_pos), player, bitboards)
+        print(f"{player.upper()} moved from {Pos(*start_pos).to_chess_notation()} to {Pos(*end_pos).to_chess_notation()}")
+        bitboards.print_combined_board()
+
+        player = 'b' if player == 'r' else 'r'
+
+    print("Game Over")
+    game_end_status = check_game_end(bitboards)
+    if game_end_status:
+        print(game_end_status)
+    else:
+        print("Time limit reached")
+# Simulationsfunktion
+'''def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5, num_generations=3, mutation_rate=0.1):
     bitboards = parse_fen(reformulate(fen))
     player = 'b'
     total_moves = 0
@@ -772,37 +888,7 @@ def simulate_game_with_evolution_and_alpha_beta(fen, total_time=120, pop_size=5,
         print(game_end_status)
     else:
         print("Time limit reached")
-
-"""
-#for server
-def simulate_game_with_evolution_and_alpha_beta(fen_player, total_time=120, pop_size=5, num_generations=3, mutation_rate=0.1):
-    player = fen_player[-1]
-    fen = fen_player[:-2]
-    bitboards = parse_fen(reformulate(fen))
-    total_moves = 0
-    #start_time = time.time()
-
-    if check_game_end(bitboards):
-        return
-
-    move_time = 1  # Allocate 1 second for each move
-    best_move, _ = evolutionary_algorithm_with_alpha_beta(bitboards, player, pop_size, num_generations, mutation_rate,
-                                                          move_time, total_moves)
-
-    if not best_move:
-        print("No valid move found", player, "Lost")
-        return
-
-    start_pos, end_pos = best_move
-    move = f"{Pos(*start_pos).to_chess_notation()}-{Pos(*end_pos).to_chess_notation()}"
-    total_moves += 1
-    print("move : " , move, "total : ", total_moves)
-    return move, total_moves"""
-
+'''
 # Beispiel der Nutzung der Simulationsfunktion
 fen = "b0b0b0b0b0b0/1b0b0b0b0b0b01/8/8/8/8/1r0r0r0r0r0r01/r0r0r0r0r0r0"
 simulate_game_with_evolution_and_alpha_beta(fen)
-#simulate_game(fen_player)
-#for server
-#fen_player = "b0b0b0b0b0b0/1b0b0b0b0b0b01/8/8/8/8/1r0r0r0b0r0r01/r0r0r0r0r0r0 r"
-#server_simulate_game_with_evolution_and_alpha_beta(fen_player)
