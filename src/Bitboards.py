@@ -573,9 +573,9 @@ def game_stage(bitboards):
     total_pieces = num_red_pieces + num_blue_pieces
 
     # Thresholds for determining the stage based on the number of pieces
-    if total_pieces > 24:
+    if total_pieces > 16:
         return 'early'
-    elif 12 < total_pieces <= 24:
+    elif 8 < total_pieces <= 16:
         return 'mid'
     else:
         return 'late'

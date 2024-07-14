@@ -13,8 +13,8 @@ def benchmark_evolution(bitboards, player):
     for _ in range(1000):
         start_time = time.time()
         move_time = min(total_time - (time.time() - start_time), 1.0)
-        total_moves = 0
-        Bitboards.evolutionary_algorithm_with_alpha_beta(bitboards, player,  pop_size, num_generations, mutation_rate, move_time, total_moves)
+
+        Bitboards.evolutionary_algorithm_with_alpha_beta(bitboards, player,  pop_size, num_generations, mutation_rate, move_time)
         end_time = time.time()
         # Calculate elapsed time
         total_time += (end_time - start_time)
