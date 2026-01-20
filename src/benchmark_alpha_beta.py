@@ -1,5 +1,5 @@
 import time
-import Bitboards  # Assuming Bitboards.py contains parse_fen, reformulate, and other necessary functions
+import Bitboards
 
 
 def benchmark_alpha_beta(bitboards, player):
