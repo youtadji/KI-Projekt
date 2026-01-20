@@ -19,3 +19,5 @@ This project implements an AI for the Breakthrough board game using a combinatio
 - Windows Subsystem for Linux (WSL)
 - No external libraries required
 
+
+<img width="1424" height="1673" alt="image" src="https://github.com/user-attachments/assets/d9e8f821-b6ca-4753-889d-7a4dcf594e8f" />
